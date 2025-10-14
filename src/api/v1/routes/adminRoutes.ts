@@ -1,28 +1,34 @@
+// src/routes/adminRoutes.ts
 import express from "express";
 import authenticate from "../middleware/authenticate";
 import isAuthorized from "../middleware/authorize";
+import { auth } from "src/config/firebaseconfig";
 
 const router = express.Router();
 
-// Example: Admin-only endpoint
 router.post(
-  "/admin/setCustomClaims",
+  "/setCustomClaims",
   authenticate,
   isAuthorized({ hasRole: ["admin"] }),
-  async (req, res) => {
-    // Only admins can reach here
-    res.json({ message: "Admin access granted!" });
-  }
-);
+  async (req, res, next) => {
+    try {
+      const { uid, role } = req.body;
 
-// Example: User endpoint, self-access allowed
-router.get(
-  "/users/:id",
-  authenticate,
-  isAuthorized({ hasRole: ["admin", "user"], allowSameUser: true }),
-  async (req, res) => {
-    res.json({ message: "Access granted to user data!" });
+      if (!uid || !role) {
+        return res.status(400).json({ error: "UID and role are required" });
+      }
+
+      await auth.setCustomUserClaims(uid, { role });
+
+      res.status(200).json({
+        status: "success",
+        message: `Role '${role}' assigned to user ${uid}`,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
 export default router;
+
