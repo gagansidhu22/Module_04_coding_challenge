@@ -1,17 +1,29 @@
-import express, { Request, Response, NextFunction, Express } from "express";
-import userRoutes from "./api/v1/routes/userRoutes";
+// src/index.ts
 
-const app: Express = express();
+import express from "express";
+
+import adminRoutes from "../src/api/v1/routes/adminRoutes";
+
+import userRoutes from "../src/api/v1/routes/userRoutes";
+
+import profileRoutes from "../src/api/v1/routes/profileRoutes";
+
+import { errorHandler } from "./middleware/errorHandler";
+ 
+const app = express();
+
 app.use(express.json());
+ 
+// Routes
+
+app.use("/api/v1/admin", adminRoutes);
 
 app.use("/api/v1/users", userRoutes);
 
-/**
- * Global error handler.
- */
-app.use((err: Error, req: Request, res: Response, next: NextFunction): void => {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-});
+app.use("/api/v1/profile", profileRoutes);
+ 
+// Centralized error handler
 
+app.use(errorHandler);
+ 
 export default app;
